@@ -17,6 +17,7 @@ package com.example.android.pets;
 
 import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
@@ -39,37 +40,20 @@ import com.example.android.pets.data.petDbHelper;
  */
 public class EditorActivity extends AppCompatActivity {
 
-    /**
-     * EditText field to enter the pet's name
-     */
     private EditText mNameEditText;
 
-    /**
-     * EditText field to enter the pet's breed
-     */
     private EditText mBreedEditText;
 
-    /**
-     * EditText field to enter the pet's weight
-     */
     private EditText mWeightEditText;
 
-    /**
-     * EditText field to enter the pet's gender
-     */
     private Spinner mGenderSpinner;
 
-    /**
-     * Gender of the pet. The possible values are:
-     * 0 for unknown gender, 1 for male, 2 for female.
-     */
-    private int mGender = 0;
+    private int mGender = petEntry.GENDER_UNKNOWN;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_editor);
-
         // Find all relevant views that we will need to read user input from
         mNameEditText = (EditText) findViewById(R.id.edit_pet_name);
         mBreedEditText = (EditText) findViewById(R.id.edit_pet_breed);
@@ -79,12 +63,8 @@ public class EditorActivity extends AppCompatActivity {
         setupSpinner();
     }
 
-    /**
-     * Setup the dropdown spinner that allows the user to select the gender of the pet.
-     */
     private void setupSpinner() {
-        // Create adapter for spinner. The list options are from the String array it will use
-        // the spinner will use the default layout
+
         ArrayAdapter genderSpinnerAdapter = ArrayAdapter.createFromResource(this,
                 R.array.array_gender_options, android.R.layout.simple_spinner_item);
 
@@ -113,34 +93,47 @@ public class EditorActivity extends AppCompatActivity {
             // Because AdapterView is an abstract class, onNothingSelected must be defined
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-                mGender = 0; // Unknown
+                mGender = petEntry.GENDER_UNKNOWN; // Unknown
             }
         });
     }
 
     private void insertPet() {
-         String nameString = mNameEditText.getText().toString().trim();
-         String breedString = mBreedEditText.getText().toString().trim();
-         String weightString = mWeightEditText.getText().toString().trim();
-         int weight = Integer.parseInt(weightString);
+        String nameString = mNameEditText.getText().toString().trim();
+        String breedString = mBreedEditText.getText().toString().trim();
+        String weightString = mWeightEditText.getText().toString().trim();
+        int weight = Integer.parseInt(weightString);
 
-        petDbHelper mDbHelper =new petDbHelper(this);
-        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+//        petDbHelper mDbHelper = new petDbHelper(this);
+//        SQLiteDatabase db = mDbHelper.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(petEntry.COLUMN_PET_NAME, nameString);
         values.put(petEntry.COLUMN_PET_BREED, breedString);
-        values.put(petEntry.COLUMN_PET_GENDER,mGender);
+        values.put(petEntry.COLUMN_PET_GENDER, mGender);
         values.put(petEntry.COLUMN_PET_WEIGHT, weight);
-        long newRowID = db.insert(petEntry.TABLE_NAME, null, values);
-        if(newRowID == -1){
-            Toast.makeText(EditorActivity.this ,"Error Insert in Database",Toast.LENGTH_LONG).show();
-        }
-        else{
-            Toast.makeText(EditorActivity.this ,"New Row  Inserted in Database",Toast.LENGTH_LONG).show();
-        }
-        Log.v("EditorActivity", "New Row" + newRowID);
-    }
+//        long newRowID = db.insert(petEntry.TABLE_NAME, null, values);
+//        if(newRowID == -1){
+//            Toast.makeText(EditorActivity.this ,"Error Insert in Database",Toast.LENGTH_LONG).show();
+//        }
+//        else{
+//            Toast.makeText(EditorActivity.this ,"New Row  Inserted in Database",Toast.LENGTH_LONG).show();
+//        }
+//        Log.v("EditorActivity", "New Row" + newRowID);
+//    }
+        // Insert a new pet into the provider, returning the content URI for the new pet.
+        Uri newUri = getContentResolver().insert(petEntry.CONTENT_URI, values);
 
+        // Show a toast message depending on whether or not the insertion was successful
+        if (newUri == null) {
+            // If the new content URI is null, then there was an error with insertion.
+            Toast.makeText(this, getString(R.string.editor_insert_pet_failed),
+                    Toast.LENGTH_SHORT).show();
+        } else {
+            // Otherwise, the insertion was successful and we can display a toast.
+            Toast.makeText(this, getString(R.string.editor_insert_pet_successful),
+                    Toast.LENGTH_SHORT).show();
+        }
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu options from the res/menu/menu_editor.xml file.

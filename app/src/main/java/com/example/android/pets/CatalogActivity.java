@@ -16,27 +16,24 @@
 package com.example.android.pets;
 
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
 import com.example.android.pets.data.petContract.petEntry;
-import com.example.android.pets.data.petDbHelper;
 
 /**
  * Displays list of pets that were entered and stored in the app.
  */
 public class CatalogActivity extends AppCompatActivity {
-    private petDbHelper mDbHelper;
+//    private petDbHelper mDbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,8 +49,8 @@ public class CatalogActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
-        mDbHelper = new petDbHelper(this);
-        displayDatabaseInfo();
+//        mDbHelper = new petDbHelper(this);
+//        displayDatabaseInfo();
     }
 
     @Override
@@ -64,8 +61,8 @@ public class CatalogActivity extends AppCompatActivity {
     }
 
     private void displayDatabaseInfo() {
-        petDbHelper mDbHelper = new petDbHelper(this);
-        SQLiteDatabase db = mDbHelper.getReadableDatabase();
+//        petDbHelper mDbHelper = new petDbHelper(this);
+//        SQLiteDatabase db = mDbHelper.getReadableDatabase();
 // Define a projection that specifies which columns from the database
         // you will actually use after this query.
         String[] projection = {
@@ -75,26 +72,19 @@ public class CatalogActivity extends AppCompatActivity {
                 petEntry.COLUMN_PET_GENDER,
                 petEntry.COLUMN_PET_WEIGHT };
 
-        // Perform a query on the pets table
-        Cursor cursor = db.query(
-                petEntry.TABLE_NAME,   // The table to query
-                projection,            // The columns to return
-                null,                  // The columns for the WHERE clause
-                null,                  // The values for the WHERE clause
-                null,                  // Don't group the rows
-                null,                  // Don't filter by row groups
-                null);                   // The sort order
-
+//        // Perform a query on the pets table
+//        Cursor cursor = db.query(
+//                petEntry.TABLE_NAME,   // The table to query
+//                projection,            // The columns to return
+//                null,                  // The columns for the WHERE clause
+//                null,                  // The values for the WHERE clause
+//                null,                  // Don't group the rows
+//                null,                  // Don't filter by row groups
+//                null);                   // The sort order
+Cursor cursor = getContentResolver().query(petEntry.CONTENT_URI,projection,null,null,null);
         TextView displayView = (TextView) findViewById(R.id.text_view_pet);
 
         try {
-            // Create a header in the Text View that looks like this:
-            //
-            // The pets table contains <number of rows in Cursor> pets.
-            // _id - name - breed - gender - weight
-            //
-            // In the while loop below, iterate through the rows of the cursor and display
-            // the information from each column in this order.
             displayView.setText("The pets table contains " + cursor.getCount() + " pets.\n\n");
             displayView.append(petEntry._ID + " - " +
                     petEntry.COLUMN_PET_NAME + " - " +
@@ -133,14 +123,20 @@ public class CatalogActivity extends AppCompatActivity {
     }
 
     private void insertPet() {
-        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+//        SQLiteDatabase db = mDbHelper.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(petEntry.COLUMN_PET_NAME, "Toto");
         values.put(petEntry.COLUMN_PET_BREED, "Rosetta");
         values.put(petEntry.COLUMN_PET_GENDER, petEntry.GENDER_MALE);
         values.put(petEntry.COLUMN_PET_WEIGHT, "7");
-        long newRowID = db.insert(petEntry.TABLE_NAME, null, values);
-        Log.v("CatalogActivity", "New Row" + newRowID);
+//        long newRowID = db.insert(petEntry.TABLE_NAME, null, values);
+//        Log.v("CatalogActivity", "New Row" + newRowID);
+
+        // Insert a new row for Toto into the provider using the ContentResolver.
+        // Use the {@link PetEntry#CONTENT_URI} to indicate that we want to insert
+        // into the pets database table.
+        // Receive the new content URI that will allow us to access Toto's data in the future.
+        Uri newUri = getContentResolver().insert(petEntry.CONTENT_URI, values);
     }
 
     @Override
